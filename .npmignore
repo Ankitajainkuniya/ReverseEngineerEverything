@@ -1,0 +1,45 @@
+# Build and development
+src/
+dist/
+**/*.test.ts
+**/*.spec.ts
+__tests__/
+jest.config.js
+
+# Version control
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation (optional, remove if you want docs in npm)
+*.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Examples
+examples/
+
+# Configuration
+tsconfig.json
+.eslintrc.json
+
+# Temporary
+*.tmp
+.env
+.env.local

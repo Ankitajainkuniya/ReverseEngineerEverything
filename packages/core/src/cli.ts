@@ -3,7 +3,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { PluginLoader, AnalysisRunner, Target } from './index';
-import { APKAnalyzer } from '@ree/analyzer-apk';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -16,7 +15,7 @@ async function main() {
   if (args[0] === 'analyze' && args[1]) {
     await analyzeFile(args[1]);
   } else if (args[0] === 'list') {
-    listAnalyzers();
+    await listAnalyzers();
   } else {
     console.error(`Unknown command: ${args[0]}`);
     printHelp();
@@ -45,7 +44,14 @@ async function analyzeFile(filePath: string) {
   };
 
   const loader = new PluginLoader();
-  loader.register(new APKAnalyzer());
+
+  // Load analyzers dynamically to avoid circular dependencies
+  try {
+    const { APKAnalyzer } = await import('../analyzer-apk/dist/index');
+    loader.register(new APKAnalyzer());
+  } catch (error) {
+    console.warn('APK Analyzer not available. Install with: npm install @ree/analyzer-apk');
+  }
 
   const runner = new AnalysisRunner(loader);
 
@@ -93,9 +99,16 @@ async function analyzeFile(filePath: string) {
   }
 }
 
-function listAnalyzers() {
+async function listAnalyzers() {
   const loader = new PluginLoader();
-  loader.register(new APKAnalyzer());
+
+  // Load available analyzers
+  try {
+    const { APKAnalyzer } = await import('../analyzer-apk/dist/index');
+    loader.register(new APKAnalyzer());
+  } catch {
+    // Analyzer not available
+  }
 
   const analyzers = loader.listAnalyzers();
   console.log('📦 Available Analyzers:\n');

@@ -100,11 +100,50 @@ export class APKAnalyzer extends BaseAnalyzer {
 
   private async parseManifest(data: string): Promise<ManifestData> {
     try {
-      // AndroidManifest.xml is binary format, we need to extract text
-      // For MVP, extract readable strings
-      return { manifest: {} };
-    } catch {
-      throw new Error('Could not parse AndroidManifest.xml');
+      // AndroidManifest.xml is in binary format (AXML)
+      // Extract readable strings from the manifest
+      // This is a simplified parser that works for MVP
+
+      const manifest: ManifestData = {
+        manifest: {
+          $: {},
+          'uses-permission': [],
+          application: [{
+            activity: [],
+            service: [],
+            'broadcast-receiver': [],
+            provider: [],
+            $: {}
+          }]
+        }
+      };
+
+      // Extract permissions (they appear as plain text in AXML)
+      const permissionMatches = data.match(/android\.permission\.[A-Z_]+/g) || [];
+      manifest.manifest!['uses-permission'] = [...new Set(permissionMatches)].map(p => ({
+        $: { 'android:name': p }
+      }));
+
+      // Extract component names (Activities, Services, etc.)
+      const componentMatches = data.match(/[a-z][a-z0-9.]*\.[A-Za-z][A-Za-z0-9]*Activity/gi) || [];
+      manifest.manifest!.application![0].activity = [...new Set(componentMatches)].map(c => ({
+        $: { 'android:name': c }
+      }));
+
+      // Check for debuggable flag
+      if (data.includes('debuggable')) {
+        // Try to determine if it's true or false
+        const debugIndex = data.indexOf('debuggable');
+        const context = data.substring(Math.max(0, debugIndex - 20), debugIndex + 50);
+        if (context.includes('\x01\x00')) {
+          // Binary true value
+          manifest.manifest!.application![0].$!['android:debuggable'] = 'true';
+        }
+      }
+
+      return manifest;
+    } catch (error) {
+      throw new Error(`Could not parse AndroidManifest.xml: ${error}`);
     }
   }
 
@@ -208,21 +247,25 @@ export class APKAnalyzer extends BaseAnalyzer {
 
   private checkForSecrets(zip: AdmZip): Finding[] {
     const findings: Finding[] = [];
-    const secretsFound: Map<string, number> = new Map();
+    const secretsFound: Map<string, Array<{file: string; snippet: string}>> = new Map();
 
-    // Check assets and resources for hardcoded secrets
     zip.getEntries().forEach(entry => {
-      if (entry.entryName.match(/\.(xml|properties|conf|json|gradle)$/i)) {
+      if (entry.entryName.match(/\.(xml|properties|conf|json|gradle|config)$/i)) {
         try {
-          const content = entry.getData().toString('utf8', 0, 5000); // First 5KB
-
+          const content = entry.getData().toString('utf8', 0, 10000);
           SENSITIVE_PATTERNS.forEach(pattern => {
             if (pattern.regex.test(content)) {
-              secretsFound.set(pattern.name, (secretsFound.get(pattern.name) || 0) + 1);
+              if (!secretsFound.has(pattern.name)) {
+                secretsFound.set(pattern.name, []);
+              }
+              secretsFound.get(pattern.name)!.push({
+                file: entry.entryName,
+                snippet: content.substring(0, 100)
+              });
             }
           });
         } catch {
-          // Ignore binary/unreadable files
+          // Binary file, ignore
         }
       }
     });
@@ -232,15 +275,15 @@ export class APKAnalyzer extends BaseAnalyzer {
         id: crypto.randomUUID(),
         severity: 'critical',
         title: 'Hardcoded Secrets Detected',
-        description: `Found potential hardcoded secrets in configuration files. These should be moved to secure storage.`,
-        evidence: Array.from(secretsFound.entries()).map(([name, count]) => ({
+        description: `Found ${secretsFound.size} potential hardcoded secrets in configuration files.`,
+        evidence: Array.from(secretsFound.entries()).map(([name, locs]) => ({
           type: 'code',
-          source: 'app resources',
-          snippet: `${name} pattern found ${count} times`
+          source: locs[0].file,
+          snippet: `${name} pattern`
         })),
         cwe: 'CWE-798',
         tags: ['secrets', 'credentials'],
-        remediations: ['Move secrets to secure server-side configuration', 'Use Android Keystore for sensitive data']
+        remediations: ['Remove all hardcoded secrets', 'Use secure server-side configuration', 'Use Android Keystore']
       });
     }
 

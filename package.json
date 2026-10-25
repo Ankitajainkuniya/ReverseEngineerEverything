@@ -1,22 +1,46 @@
 {
-  "name": "ree-monorepo",
+  "name": "ree",
   "version": "1.0.0",
   "description": "ReverseEngineerEverything - Open-source reverse engineering framework for security researchers",
-  "private": true,
-  "workspaces": [
-    "packages/core",
-    "packages/analyzer-apk",
-    "packages/skill-claude"
-  ],
+  "main": "packages/core/dist/index.js",
+  "bin": {
+    "ree": "packages/core/dist/cli.js"
+  },
   "scripts": {
-    "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces",
-    "dev": "npm run dev --workspaces --parallel",
-    "lint": "npm run lint --workspaces"
+    "build": "npm run build -r",
+    "build-core": "cd packages/core && tsc",
+    "build-apk": "cd packages/analyzer-apk && tsc",
+    "build-skill": "cd packages/skill-claude && tsc",
+    "test": "npm run test -r",
+    "test:core": "cd packages/core && npm test",
+    "test:apk": "cd packages/analyzer-apk && npm test",
+    "clean": "rm -rf packages/*/dist",
+    "postinstall": "npm run build"
+  },
+  "keywords": [
+    "reverse-engineering",
+    "security",
+    "apk",
+    "android",
+    "vulnerability",
+    "analysis",
+    "framework"
+  ],
+  "author": "ReverseEngineerEverything Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ankitajainkuniya/ReverseEngineerEverything.git"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
-    "tsx": "^4.7.0",
-    "@types/node": "^20.10.6"
+    "@types/node": "^20.10.6",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "ts-jest": "^29.1.1"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "xml2js": "^0.6.2"
   }
 }
