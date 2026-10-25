@@ -1,0 +1,22 @@
+{
+  "name": "ree-monorepo",
+  "version": "1.0.0",
+  "description": "ReverseEngineerEverything - Open-source reverse engineering framework for security researchers",
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "packages/analyzer-apk",
+    "packages/skill-claude"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "dev": "npm run dev --workspaces --parallel",
+    "lint": "npm run lint --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.10.6"
+  }
+}

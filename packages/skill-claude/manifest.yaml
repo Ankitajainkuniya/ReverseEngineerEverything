@@ -1,0 +1,43 @@
+name: ReverseEngineerEverything (REE)
+description: AI-powered reverse engineering assistant - analyze binaries, APKs, and applications for vulnerabilities
+version: 1.0.0
+author: REE Team
+
+capabilities:
+  - name: analyze
+    description: Analyze a file (APK, ELF, JavaScript, etc.) for security vulnerabilities
+    input:
+      - name: file_path
+        type: string
+        description: Path to the file to analyze
+        required: true
+    output:
+      type: string
+      description: Formatted security analysis report with findings and remediation advice
+
+  - name: list_formats
+    description: List all supported file formats
+    output:
+      type: string
+      description: List of supported formats and versions
+
+examples:
+  - name: Analyze an Android APK
+    description: Find security issues in an Android application
+    input:
+      file_path: "./my-app.apk"
+    output: |
+      # Security Analysis Results for ./my-app.apk
+
+      **Summary:** Found 5 findings (1 critical, 2 high, 2 medium)
+
+      ## Finding 1: App is Debuggable
+      **Severity:** CRITICAL
+      ...
+
+recommended_contexts:
+  - Security research and vulnerability hunting
+  - Bug bounty analysis
+  - Mobile app assessment
+  - Malware analysis
+  - Code review and auditing

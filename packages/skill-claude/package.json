@@ -1,0 +1,17 @@
+{
+  "name": "@ree/skill-claude",
+  "version": "1.0.0",
+  "description": "Claude skill for ReverseEngineerEverything - AI-powered vulnerability analysis",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo 'No tests yet'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3"
+  }
+}
