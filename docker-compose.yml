@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  ree:
+    build: .
+    image: ree:latest
+    container_name: ree-analyzer
+    volumes:
+      # Mount your APK directory
+      - ./apks:/workspace/apks
+      # Mount output directory
+      - ./results:/workspace/results
+    working_dir: /workspace
+    command: analyze apks/your-app.apk
+    # Uncomment to override command:
+    # stdin_open: true
+    # tty: true
+    # command: /bin/sh
